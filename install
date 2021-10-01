@@ -500,10 +500,10 @@ if [ ${skipNet} -ne 1 ]; then
   rm /etc/resolv.conf
   ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-  # if [ -f "${rfkill}" ]; then
-    # echo "Unblocking wifi with rfkill ..."
-    # ${rfkill} unblock all
-  # fi
+  if [ -f "${rfkill}" ]; then
+    echo "Unblocking wifi with rfkill ..."
+    ${rfkill} unblock all
+  fi
 
   for nic in $(ls /sys/class/net | grep -vE "br-|docker|dummy|lo|tun|virbr|wg"); do
     if grep -q "<devicename>${nic}</devicename>" ${OMV_CONFIG_FILE}; then
