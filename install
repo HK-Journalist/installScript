@@ -28,7 +28,7 @@ if [ ! "${systemd}" = "systemd" ]; then
 fi
 
 declare -i cfg=0
-declare -i ipv6=0
+declare -i ipv6=1
 declare -i rpi=0
 declare -i skipFlash=0
 declare -i skipNet=0
@@ -259,8 +259,11 @@ omv-env set OMV_APT_KERNEL_BACKPORTS_REPOSITORY_URL "https://mirrors.ustc.edu.cn
 omv-env set OMV_APT_SECURITY_REPOSITORY_URL "https://mirrors.ustc.edu.cn/debian-security"
 omv-env set OMV_EXTRAS_APT_REPOSITORY_URL "https://mirrors.tuna.tsinghua.edu.cn/OpenMediaVault/openmediavault-plugin-developers"
 omv-env set OMV_DOCKER_APT_REPOSITORY_URL "http://mirrors.aliyun.com/docker-ce/linux/debian"
-omv-env set OMV_PROXMOX_APT_REPOSITORY_URL "https://mirrors.tuna.tsinghua.edu.cn/proxmox/debian"
-omv-salt stage run all
+omv-env set OMV_PROXMOX_APT_REPOSITORY_URL "https://mirrors.ustc.edu.cn/proxmox/debian"
+
+monit restart omv-engined
+omv-salt stage run prepare
+omv-salt stage run deploy
 
 # install omv-extras
 echo "Downloading omv-extras.org plugin for openmediavault ${version}.x ..."
@@ -338,7 +341,7 @@ else
 fi
 
 # change default OMV settings
-omv_config_update "/config/services/smb/extraoptions" "$(echo -e "${smbOptions}")"
+# omv_config_update "/config/services/smb/extraoptions" "$(echo -e "${smbOptions}")"
 omv_config_update "/config/services/ssh/enable" "1"
 omv_config_update "/config/services/ssh/permitrootlogin" "1"
 omv_config_update "/config/system/time/ntp/enable" "1"
@@ -498,10 +501,10 @@ if [ ${skipNet} -ne 1 ]; then
   rm /etc/resolv.conf
   ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-  if [ -f "${rfkill}" ]; then
-    echo "Unblocking wifi with rfkill ..."
-    ${rfkill} unblock all
-  fi
+  # if [ -f "${rfkill}" ]; then
+    # echo "Unblocking wifi with rfkill ..."
+    # ${rfkill} unblock all
+  # fi
 
   for nic in $(ls /sys/class/net | grep -vE "br-|docker|dummy|lo|tun|virbr|wg"); do
     if grep -q "<devicename>${nic}</devicename>" ${OMV_CONFIG_FILE}; then
